@@ -6,4 +6,10 @@ const authRouter = Router();
 // POST: /api/auth/register
 authRouter.post("/register", authController.register)
 
+// POST: /api/auth/get-me
+authRouter.get("/get-me", authController.getMe)
+
+// POST: /api/auth/refresh-token
+authRouter.get("/refresh-token", authController.refreshToken)
+
 export default authRouter;
