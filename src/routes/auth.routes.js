@@ -6,6 +6,9 @@ const authRouter = Router();
 // POST: /api/auth/register
 authRouter.post("/register", authController.register)
 
+// POST: /api/auth/login
+authRouter.post("/login", authController.login)
+
 // POST: /api/auth/get-me
 authRouter.get("/get-me", authController.getMe)
 

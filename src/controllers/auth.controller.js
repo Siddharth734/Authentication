@@ -74,6 +74,70 @@ export async function register(req, res) {
     })
 }
 
+export async function login(req, res){
+    const {username, password} = req.body;
+
+    const user = await userModel.findOne({
+        username
+    })
+
+    if(!user){
+        return res.status(400).json({
+            message: "Invalid username"
+        })
+    }
+    
+    const hashedPass = crypto.createHash("sha256").update(password).digest("hex");
+    const validPassword = hashedPass === user.password; 
+    if (!validPassword) {
+        return res.status(400).json({
+            message: "Invalid password"
+        })
+    }
+
+    const refreshToken = jwt.sign({
+        id: user._id,
+    }, config.JWT_SECRET,
+        {
+            expiresIn: "7d"
+        }
+    )
+    
+    const refreshTokenHash = crypto.createHash("sha256").update(refreshToken).digest("hex");
+    
+    const session = sessionModel.create({
+        user: user._id,
+        refreshTokenHash,
+        ip: req.ip,
+        userAgent: req.headers[ "user-agent" ]
+    })
+
+    const accessToken = jwt.sign({
+        id: user._id,
+        sessionId: session._id 
+    }, config.JWT_SECRET,
+        {
+            expiresIn: "15m"
+        }
+    )
+
+    res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+        maxAge: 7*24*60*60*100,
+    })
+
+    res.status(200).json({
+        message: "logged in successfully",
+        user:{
+            username: user.username,
+            email: user.emal,
+        },
+        accessToken,
+    })
+}
+
 export async function getMe(req, res) {
     
     // .? will return if the named header does not exist
@@ -208,7 +272,7 @@ export async function logoutAll(req, res){
         revoked: true
     })
 
-    res.clearCookie("refreshToken")
+    res.clearCookie("refreshToken");
 
     res.status(200).json({
         message: "Logged out from all device successfully"
