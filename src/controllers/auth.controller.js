@@ -3,6 +3,7 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import config from "../config/config.js";
 import sessionModel from "../models/session.model.js";
+import { sendEmail } from "../services/email.js";
 
 export async function register(req, res) {
 
@@ -53,7 +54,7 @@ export async function register(req, res) {
         sessionId: session.id,
     }, config.JWT_SECRET,
         {
-            expiresIn: "15m"
+            expiresIn: "5m"
         }
     )
 
@@ -117,7 +118,7 @@ export async function login(req, res){
         sessionId: session._id 
     }, config.JWT_SECRET,
         {
-            expiresIn: "15m"
+            expiresIn: "5m"
         }
     )
 
@@ -190,7 +191,7 @@ export async function refreshToken(req, res) {
         id: decoded.id
     }, config.JWT_SECRET,
         {
-            expiresIn: "15min"
+            expiresIn: "5m"
         }
     )
 
@@ -198,7 +199,7 @@ export async function refreshToken(req, res) {
         id: decoded.id
     }, config.JWT_SECRET,
         {
-            expiresIn: "15min"
+            expiresIn: "7d"
         }
     )
 
