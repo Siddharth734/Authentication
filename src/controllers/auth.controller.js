@@ -265,3 +265,45 @@ export async function logoutAll(req, res){
         message: "Logged out from all device successfully"
     })
 }
+
+export async function verifyEmail(req, res){
+    const {otp, email} = req.body;
+
+    const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+
+    const otpInbox = await otpModel.findOne({
+        email,
+        otpHash,
+    })
+
+    if(!otpInbox){
+        return res.status(400).json({
+            message: "User not verified"
+        })
+    }
+
+    const user = await userModel.findByIdAndUpdate(otpInbox.user,{
+        verified: true
+    },{
+        new: true //stores the updated document with verified: true
+    })
+
+    if(!user){
+        return res.status(400).json({
+            message: "User with this email does not exist"
+        })
+    }
+
+    await otpModel.deleteMany({
+        user: otpInbox.user,
+    })
+
+    return res.status(200).json({
+        message: "email verified successfully",
+        user: {
+            username: user.username,
+            email: user.email,
+            verified: user.verified,
+        },
+    })
+}
